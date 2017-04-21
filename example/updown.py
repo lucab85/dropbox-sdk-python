@@ -13,6 +13,8 @@ import six
 import sys
 import time
 import unicodedata
+import socks
+import socket
 
 if sys.version.startswith('2'):
     input = raw_input  # noqa: E501,F821; pylint: disable=redefined-builtin,undefined-variable,useless-suppression
@@ -30,6 +32,10 @@ parser.add_argument('rootdir', nargs='?', default='~/Downloads',
 parser.add_argument('--token', default=TOKEN,
                     help='Access token '
                     '(see https://www.dropbox.com/developers/apps)')
+parser.add_argument('--server', nargs='?', default='127.0.0.1',
+                    help='SOCKS5 Server IP address')
+parser.add_argument('--port', nargs='?', default='8080',
+                    help='SOCKS5 Server port')
 parser.add_argument('--yes', '-y', action='store_true',
                     help='Answer yes to all questions')
 parser.add_argument('--no', '-n', action='store_true',
@@ -63,6 +69,9 @@ def main():
     elif not os.path.isdir(rootdir):
         print(rootdir, 'is not a folder on your filesystem')
         sys.exit(1)
+
+    socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, args.server, int(args.port))
+    socket.socket = socks.socksocket
 
     dbx = dropbox.Dropbox(args.token)
 
